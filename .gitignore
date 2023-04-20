@@ -1,0 +1,21 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Executables
+*.exe
+*.out
+*.test
+*.prof
+
+# GoLand project files
+.idea
+
+# Go Module dependencies
+/go.sum
+/go.mod
+
+# Binaries for programs and plugins
+/bin/
+/pkg/
