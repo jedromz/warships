@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	gui "github.com/grupawp/warships-lightgui/v2"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -19,18 +18,18 @@ const (
 	waitTime       = 1 * time.Second
 )
 
-func (a *App) Play() error {
+func (a *App) Play() (string, error) {
+	state, err := a.client.Status()
 	for {
-		state, err := a.client.Status()
-		fmt.Println(state)
-		//load initial opponent shots
-		if err = a.LoadOppShots(state); err != nil {
-			return err
-		}
-		printBoard(a.board, state)
+		state, err = a.client.Status()
 
+		if err = a.LoadOppShots(state); err != nil {
+			return "", err
+		}
+
+		printBoard(a.board, *a.desc)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		if state.GameStatus == GameOver {
@@ -39,11 +38,12 @@ func (a *App) Play() error {
 
 		if state.ShouldFire {
 			a.Fire()
+		} else {
+			time.Sleep(1 * time.Second)
 		}
-		printBoard(a.board, state)
 	}
 
-	return nil
+	return state.LastGameStatus, nil
 }
 
 func (a *App) LoadOppShots(state *Status) error {
@@ -53,22 +53,23 @@ func (a *App) LoadOppShots(state *Status) error {
 		if err != nil {
 			return err
 		}
-
-		a.board.Set(gui.Left, shot, mark)
+		err = a.board.Set(gui.Left, shot, mark)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (a *App) Fire() {
-	shot := enterCords()
+	shot, err := enterCords()
 	if shot == "stop" {
 		os.Exit(0)
 	}
 
 	fire, err := a.client.Fire(shot)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 
@@ -100,34 +101,49 @@ func (a *App) WaitForStart() (*Status, error) {
 	return nil, errors.New("unable to start game")
 }
 
-func printBoard(board *gui.Board, status *Status) {
-	opponent := color.New(color.FgHiWhite, color.BgRed).SprintFunc()
-	player := color.New(color.FgHiWhite, color.BgGreen).SprintFunc()
+func printBoard(board *gui.Board, desc Description) {
 
 	board.Display()
+	printDescription(desc)
+}
+func printDescription(d Description) {
+	green := color.New(color.FgHiWhite, color.BgGreen).SprintFunc()
+	red := color.New(color.FgHiWhite, color.BgRed).SprintFunc()
 
-	playerName := getOrDefault(status.Desc, "Player")
-	opponentName := getOrDefault(status.OppDesc, "Flying WP Bot")
-
-	fmt.Printf("%-30s%s%30s\n", player(status.Nick), "", opponent(status.Opponent))
-	fmt.Printf("%-37s%s%30s\n", player(playerName), "", opponent(opponentName))
-	fmt.Println()
-
+	fmt.Printf("%s:%s\n%s:%s\n", green(d.Nick), green(d.Desc), red(d.Opponent), red(d.OppDesc))
 }
 
-func enterCords() string {
-	fmt.Print("Enter shot: ")
-	reader := bufio.NewReader(os.Stdin)
-	text, err := reader.ReadString('\n')
-	if err != nil {
-		log.Fatalf("Error reading input: %v", err)
+func enterCords() (string, error) {
+	shot := ""
+
+	for !isValidWarshipCoord(shot) {
+		fmt.Print("Enter shot: ")
+		reader := bufio.NewReader(os.Stdin)
+		text, err := reader.ReadString('\n')
+		if err != nil {
+			return "", err
+		}
+		shot = strings.TrimSpace(text)
 	}
-	return strings.TrimSpace(text)
+	return shot, nil
 }
 
-func getOrDefault(s, d string) string {
-	if s == "" {
-		return d
+func isValidWarshipCoord(coord string) bool {
+	if len(coord) != 2 && len(coord) != 3 {
+		return false
 	}
-	return s
+
+	letter := coord[0]
+	if letter < 'A' || letter > 'J' {
+		return false
+	}
+
+	if len(coord) == 3 {
+		lastTwoChars := coord[1:]
+		if lastTwoChars != "10" {
+			return false
+		}
+	}
+
+	return true
 }

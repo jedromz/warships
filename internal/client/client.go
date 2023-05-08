@@ -14,11 +14,21 @@ import (
 const (
 	applicationJson = "application/json"
 	urlInitGame     = "/api/game"
-	urlBoard        = "/api//game/board"
+	urlBoard        = "/api/game/board"
 	urlStatus       = "/api/game"
 	authTokenHeader = "X-Auth-Token"
 	urlFire         = "/api/game/fire"
+	urlDesc         = "/api/game/desc"
 )
+
+type FailedToUnmarshalError struct {
+	target string
+	data   []byte
+}
+
+func (e FailedToUnmarshalError) Error() string {
+	return fmt.Sprintf("failed to unmarshal %s: %s", e.target, string(e.data))
+}
 
 type Board struct {
 	Board []string `json:"board"`
@@ -30,13 +40,52 @@ type Client struct {
 	token  string
 }
 
+func (c *Client) Description() (*app.Description, error) {
+	urlPath, err := url.JoinPath(c.Host, urlDesc)
+
+	if err != nil {
+		fmt.Errorf("error")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, urlPath, nil)
+	if err != nil {
+		log.Println("failed to create request", err)
+	}
+
+	req.Header.Set(authTokenHeader, c.token)
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		log.Println("failed to get", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("failed to read response body", err)
+		return nil, err
+	}
+
+	var desc app.Description
+	err = json.Unmarshal(body, &desc)
+	if err != nil {
+		log.Println("failed to unmarshal response", err)
+		return nil, FailedToUnmarshalError{
+			target: "app.Description",
+			data:   body,
+		}
+	}
+
+	return &desc, nil
+}
+
 func (c *Client) InitGame() error {
 	initGameRequest := map[string]any{
 		"coords":     nil,
 		"desc":       "",
 		"nick":       "",
 		"targetNick": "",
-		"wpbot":      true,
+		"wpbot":      false,
 	}
 
 	b, err := json.Marshal(initGameRequest)
@@ -59,7 +108,6 @@ func (c *Client) InitGame() error {
 func (c *Client) Board() ([]string, error) {
 	urlPath, err := url.JoinPath(c.Host, urlBoard)
 
-	fmt.Println(urlPath)
 	if err != nil {
 		fmt.Errorf("error")
 	}
@@ -76,8 +124,7 @@ func (c *Client) Board() ([]string, error) {
 		log.Println("failed to get", err)
 	}
 	defer resp.Body.Close()
-	fmt.Println(resp)
-	fmt.Println(resp.Body)
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("failed to read response body", err)
