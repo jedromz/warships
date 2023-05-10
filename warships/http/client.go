@@ -4,15 +4,61 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
 type GameBoard struct {
 	Board []string `json:"board"`
 }
-
+type Description struct {
+	Nick           string   `json:"nick"`
+	GameStatus     string   `json:"game_status"`
+	LastGameStatus string   `json:"last_game_status"`
+	Opponent       string   `json:"opponent"`
+	OppShots       []string `json:"opp_shots"`
+	ShouldFire     bool     `json:"should_fire"`
+	Timer          int      `json:"timer"`
+}
 type HttpClient struct {
 	token string
+}
+
+func (c *HttpClient) GetDescription() error {
+	url := "https://go-pjatk-server.fly.dev/api/game"
+	method := "GET"
+
+	client := &http.Client{}
+
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("X-Auth-Token", c.token)
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	var desc Description
+	err = json.Unmarshal(body, &desc)
+	if err != nil {
+		return err
+	}
+	fmt.Println(desc)
+	return nil
 }
 
 func (c *HttpClient) GetBoard() (GameBoard, error) {

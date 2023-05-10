@@ -25,6 +25,7 @@ func main() {
 	mapToState("A1")
 
 	ui := gui.NewGUI(true)
+	fmt.Println(app.GetDescription())
 
 	board1 := gui.NewBoard(1, 1, nil)
 	board2 := gui.NewBoard(50, 1, nil)
