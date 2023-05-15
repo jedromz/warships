@@ -1,51 +1,72 @@
 package main
 
 import (
-	"fmt"
 	gui "github.com/grupawp/warships-gui/v2"
 	"warships/warships/game"
 	"warships/warships/http"
 )
 
 func main() {
+	c := make(chan string)
+	app := game.App{
+		Client:   &http.HttpClient{},
+		Player:   [10][10]gui.State{},
+		Opponent: [10][10]gui.State{},
+	}
+	app.Play()
+	<-c
+
+	///////////////////////////////
+
+}
+
+/*
 
 	app := game.App{
-		Client: &http.HttpClient{},
+		Client:   &http.HttpClient{},
+		Player:   [10][10]gui.State{},
+		Opponent: [10][10]gui.State{},
 	}
-	err := app.StartGame()
-	if err != nil {
-		fmt.Println(err)
-		return
+
+	app.StartGame()
+	board, _ := app.GetBoard()
+	for _, coord := range board.Board {
+		y, x := mapToState(coord)
+		app.Player[x][y] = gui.Ship
 	}
-	board, err := app.GetBoard()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	mapToState("A1")
+
+	txt := gui.NewText(1, 1, "Press on any coordinate to log it.", nil)
 
 	ui := gui.NewGUI(true)
-	fmt.Println(app.GetDescription())
 
 	board1 := gui.NewBoard(1, 1, nil)
+	board1.SetStates(app.Player)
 	board2 := gui.NewBoard(50, 1, nil)
+
 	ui.Draw(board1)
 	ui.Draw(board2)
 
 	states := [10][10]gui.State{}
-	for _, v := range board.Board {
-		x, y := mapToState(v)
-		states[x][y] = gui.Ship
-	}
-	board1.SetStates(states)
+
+	go func() {
+		for {
+			char := board2.Listen(context.TODO())
+			txt.SetText(fmt.Sprintf("Coordinate: %s", char))
+			ui.Log("Coordinate: %s", char) // logs are displayed after the game exits
+			x, y := mapToState(char)
+			fire, _ := app.Fire(char)
+			switch fire {
+			case "hit":
+				states[x][y] = gui.Hit
+			case "miss":
+				states[x][y] = gui.Miss
+			case "sunk":
+				states[x][y] = gui.Hit
+
+			}
+			board2.SetStates(states)
+		}
+	}()
 
 	ui.Start(nil)
-}
-func mapToState(coord string) (int, int) {
-	if len(coord) > 2 {
-		return int(coord[0] - 65), 9
-	}
-	yAxis := int(coord[0] - 65)
-	xAxis := int(coord[1] - 49)
-	return yAxis, xAxis
-}
+*/

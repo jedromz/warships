@@ -11,6 +11,10 @@ import (
 type GameBoard struct {
 	Board []string `json:"board"`
 }
+type FireResponse struct {
+	Coord string `json:"coord"`
+}
+
 type Description struct {
 	Nick           string   `json:"nick"`
 	GameStatus     string   `json:"game_status"`
@@ -24,7 +28,7 @@ type HttpClient struct {
 	token string
 }
 
-func (c *HttpClient) GetDescription() error {
+func (c *HttpClient) GetDescription() (Description, error) {
 	url := "https://go-pjatk-server.fly.dev/api/game"
 	method := "GET"
 
@@ -33,7 +37,7 @@ func (c *HttpClient) GetDescription() error {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return Description{}, err
 	}
 
 	req.Header.Add("accept", "application/json")
@@ -42,23 +46,22 @@ func (c *HttpClient) GetDescription() error {
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return Description{}, err
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return Description{}, err
 	}
 
 	var desc Description
 	err = json.Unmarshal(body, &desc)
 	if err != nil {
-		return err
+		return Description{}, err
 	}
-	fmt.Println(desc)
-	return nil
+	return desc, nil
 }
 
 func (c *HttpClient) GetBoard() (GameBoard, error) {
@@ -140,4 +143,52 @@ func (c *HttpClient) StartGame() error {
 	fmt.Println("Auth Token:", authToken)
 	c.token = authToken
 	return nil
+}
+
+func (c *HttpClient) Fire(coord string) (string, error) {
+	url := "https://go-pjatk-server.fly.dev/api/game/fire"
+
+	// Create the request body
+	requestBody := map[string]string{
+		"coord": coord,
+	}
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return "", err
+	}
+
+	// Create the HTTP request
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		fmt.Println("Error:", err)
+		return "", err
+	}
+
+	// Set the request headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Auth-Token", c.token)
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	var response map[string]string
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return "", err
+	}
+
+	// Get the "result" value from the response
+	result := response["result"]
+
+	// Print the fire result
+	return result, nil
 }
