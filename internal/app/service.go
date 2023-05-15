@@ -14,20 +14,21 @@ import (
 const (
 	GameInProgress = "game_in_progress"
 	GameOver       = "ended"
-	maxRetries     = 5
+	maxRetries     = 10000
 	waitTime       = 1 * time.Second
 )
 
 func (a *App) Play() (string, error) {
-	state, err := a.client.Status()
+	state, err := a.Client.Status()
 	for {
-		state, err = a.client.Status()
+		state, err = a.Client.Status()
 
 		if err = a.LoadOppShots(state); err != nil {
 			return "", err
 		}
 
 		printBoard(a.board, *a.desc)
+		fmt.Println((float64(a.shotsHit)/float64(a.shotsTotal))*100, "%")
 		if err != nil {
 			return "", err
 		}
@@ -41,6 +42,7 @@ func (a *App) Play() (string, error) {
 		} else {
 			time.Sleep(1 * time.Second)
 		}
+
 	}
 
 	return state.LastGameStatus, nil
@@ -68,7 +70,7 @@ func (a *App) Fire() {
 		os.Exit(0)
 	}
 
-	fire, err := a.client.Fire(shot)
+	fire, err := a.Client.Fire(shot)
 	if err != nil {
 		return
 	}
@@ -78,15 +80,17 @@ func (a *App) Fire() {
 		a.board.Set(gui.Right, shot, gui.Miss)
 	case "hit", "sunk":
 		a.board.Set(gui.Right, shot, gui.Hit)
+		a.shotsHit++
 		if fire == "sunk" {
 			a.board.CreateBorder(gui.Right, shot)
 		}
 	}
+	a.shotsTotal++
 }
 
 func (a *App) WaitForStart() (*Status, error) {
 	for retryCount := 0; retryCount < maxRetries; retryCount++ {
-		state, err := a.client.Status()
+		state, err := a.Client.Status()
 		if err != nil {
 			return nil, err
 		}

@@ -19,6 +19,7 @@ const (
 	authTokenHeader = "X-Auth-Token"
 	urlFire         = "/api/game/fire"
 	urlDesc         = "/api/game/desc"
+	urlPlayerList   = "/api/game/list"
 )
 
 type FailedToUnmarshalError struct {
@@ -38,6 +39,42 @@ type Client struct {
 	Client *http.Client
 	Host   string
 	token  string
+}
+
+func (c *Client) GetPlayerList() ([]app.PlayerList, error) {
+	urlPath, err := url.JoinPath(c.Host, urlPlayerList)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, urlPath, nil)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(req)
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(string(body))
+
+	var playerList []app.PlayerList
+	err = json.Unmarshal(body, &playerList)
+	if err != nil {
+		log.Println("failed to unmarshal response", err)
+		return nil, err
+	}
+
+	return playerList, err
 }
 
 func (c *Client) Description() (*app.Description, error) {
@@ -79,15 +116,16 @@ func (c *Client) Description() (*app.Description, error) {
 	return &desc, nil
 }
 
-func (c *Client) InitGame() error {
+func (c *Client) InitGame(targetName string, playerName string, botGame bool) error {
 	initGameRequest := map[string]any{
-		"coords":     nil,
+		"coords":     []string{},
 		"desc":       "",
-		"nick":       "",
-		"targetNick": "",
-		"wpbot":      false,
+		"nick":       playerName,
+		"targetNick": targetName,
+		"wpbot":      botGame,
 	}
 
+	fmt.Println(initGameRequest)
 	b, err := json.Marshal(initGameRequest)
 	if err != nil {
 		return fmt.Errorf("client#InitGame: failed to marshal request: %v", err)
@@ -96,6 +134,7 @@ func (c *Client) InitGame() error {
 	if err != nil {
 		return fmt.Errorf("client#InitGame: failed to create request: %v", err)
 	}
+	fmt.Println(string(b))
 	resp, err := http.Post(urlPath, applicationJson, bytes.NewBuffer(b))
 	if err != nil {
 		return fmt.Errorf("client#InitGame: failed to post: %v", err)
