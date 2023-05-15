@@ -18,16 +18,33 @@ const (
 	waitTime       = 1 * time.Second
 )
 
+type Timer struct {
+	playerMove bool
+	c          chan string
+}
+
+func (t *Timer) display() {
+
+	/*for i := 60; i >= 0; i-- {
+		fmt.Printf("Time remaining: %ds\r", i)
+		time.Sleep(time.Second)
+	}*/
+
+	fmt.Println("Timer finished!")
+}
+
 func (a *App) Play() (string, error) {
 	state, err := a.Client.Status()
+	turn := make(chan string)
+	go startTimer(turn)
 	for {
 		state, err = a.Client.Status()
 
 		if err = a.LoadOppShots(state); err != nil {
 			return "", err
 		}
-
 		printBoard(a.board, *a.desc)
+
 		fmt.Println((float64(a.shotsHit)/float64(a.shotsTotal))*100, "%")
 		if err != nil {
 			return "", err
@@ -39,6 +56,7 @@ func (a *App) Play() (string, error) {
 
 		if state.ShouldFire {
 			a.Fire()
+			turn <- "player"
 		} else {
 			time.Sleep(1 * time.Second)
 		}
@@ -119,7 +137,7 @@ func printDescription(d Description) {
 
 func enterCords() (string, error) {
 	shot := ""
-
+	fmt.Println()
 	for !isValidWarshipCoord(shot) {
 		fmt.Print("Enter shot: ")
 		reader := bufio.NewReader(os.Stdin)
@@ -150,4 +168,29 @@ func isValidWarshipCoord(coord string) bool {
 	}
 
 	return true
+}
+
+func startTimer(input chan string) {
+	expiration := time.Now().Add(60 * time.Second)
+	timer := time.NewTimer(time.Until(expiration))
+
+	for {
+		select {
+		case <-timer.C:
+			// Timer expired
+			fmt.Println("\nTime's up!")
+			os.Exit(0)
+		case <-time.After(1 * time.Second):
+			// Print the time left
+			remaining := expiration.Sub(time.Now())
+			fmt.Printf("\rTime left: %s", remaining.Round(time.Second))
+		case <-input:
+			// User entered text, reset the timer
+			if !timer.Stop() {
+				<-timer.C
+			}
+			expiration = time.Now().Add(60 * time.Second)
+			timer.Reset(time.Until(expiration))
+		}
+	}
 }

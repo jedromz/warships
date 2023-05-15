@@ -5,6 +5,7 @@ import (
 	gui "github.com/grupawp/warships-lightgui/v2"
 	"net/http"
 	"strconv"
+	"strings"
 	"warships/internal/app"
 	"warships/internal/client"
 )
@@ -46,31 +47,37 @@ func main() {
 		return
 	}
 
-	fmt.Println("Enter target name:")
-	var targetName string
-	_, err = fmt.Scanln(&targetName)
-	/*
-		nick := flag.String("nick", "", "player nickname")
-		targetNick := flag.String("targetNick", "", "target nickname")
-		playWithBot := flag.String("bot", "", "start a game vs bot")
-		flag.Parse()
-
-		fmt.Println(*nick)
-		fmt.Println(*targetNick)
-		fmt.Println(*playWithBot)
-	*/
-
 	a := setUp()
 
-	list, err := a.Client.GetPlayerList()
-	fmt.Println(list)
+	if ok, _ := strconv.ParseBool(playWithBot); !ok {
+
+		list, _ := a.Client.GetPlayerList()
+		printOpponents(list)
+
+		fmt.Println("Choose Your Opponent")
+		var oppNumber int
+
+		fmt.Scanln(&oppNumber)
+
+	} else {
+		a.TargetName = ""
+	}
 
 	a.BotGame, err = strconv.ParseBool(playWithBot)
-	a.PlayerName = playerName
-	a.TargetName = targetName
+	a.PlayerName = strings.TrimSpace(playerName)
+
 	run, err := a.Run()
 	if err != nil {
 		fmt.Println(err)
 	}
 	printResult(run)
+}
+func printOpponents(oppList []app.PlayerList) {
+	fmt.Println("### LIST OF PLAYERS ###")
+	for i, o := range oppList {
+		fmt.Println(i, o.Nick)
+	}
+}
+func choosePlayer(oppList []app.PlayerList, n int) string {
+	return oppList[n].Nick
 }

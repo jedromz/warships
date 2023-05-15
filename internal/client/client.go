@@ -52,7 +52,6 @@ func (c *Client) GetPlayerList() ([]app.PlayerList, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(req)
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
@@ -64,8 +63,6 @@ func (c *Client) GetPlayerList() ([]app.PlayerList, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(string(body))
 
 	var playerList []app.PlayerList
 	err = json.Unmarshal(body, &playerList)
@@ -118,14 +115,13 @@ func (c *Client) Description() (*app.Description, error) {
 
 func (c *Client) InitGame(targetName string, playerName string, botGame bool) error {
 	initGameRequest := map[string]any{
-		"coords":     []string{},
-		"desc":       "",
-		"nick":       playerName,
-		"targetNick": targetName,
-		"wpbot":      botGame,
+		"coords":      []string{},
+		"desc":        "Test Desc",
+		"nick":        playerName,
+		"target_nick": targetName,
+		"wpbot":       botGame,
 	}
 
-	fmt.Println(initGameRequest)
 	b, err := json.Marshal(initGameRequest)
 	if err != nil {
 		return fmt.Errorf("client#InitGame: failed to marshal request: %v", err)
@@ -134,7 +130,7 @@ func (c *Client) InitGame(targetName string, playerName string, botGame bool) er
 	if err != nil {
 		return fmt.Errorf("client#InitGame: failed to create request: %v", err)
 	}
-	fmt.Println(string(b))
+
 	resp, err := http.Post(urlPath, applicationJson, bytes.NewBuffer(b))
 	if err != nil {
 		return fmt.Errorf("client#InitGame: failed to post: %v", err)
@@ -169,6 +165,8 @@ func (c *Client) Board() ([]string, error) {
 		log.Println("failed to read response body", err)
 		return nil, err
 	}
+
+	fmt.Println(string(body))
 
 	var board Board
 	err = json.Unmarshal(body, &board)
