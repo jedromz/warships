@@ -6,14 +6,24 @@ import (
 )
 
 func main() {
-	timer(60)
-}
+	c := make(chan string)
+	go func() {
+		seconds := 0
+		for {
+			fmt.Printf("\rTimer: %d seconds", seconds)
+			seconds++
+			time.Sleep(1 * time.Second)
+		}
+	}()
 
-func timer(seconds int) {
-	for i := seconds; i >= 0; i-- {
-		fmt.Printf("Time remaining: %ds\r", i)
-		time.Sleep(time.Second)
-	}
+	var userInput string
+	go func() {
+		for {
+			fmt.Print("\nEnter something: ")
+			fmt.Scanln(&userInput)
+			fmt.Println("You entered:", userInput)
+		}
+	}()
 
-	fmt.Println("Timer finished!")
+	<-c
 }

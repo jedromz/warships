@@ -18,21 +18,6 @@ const (
 	waitTime       = 1 * time.Second
 )
 
-type Timer struct {
-	playerMove bool
-	c          chan string
-}
-
-func (t *Timer) display() {
-
-	/*for i := 60; i >= 0; i-- {
-		fmt.Printf("Time remaining: %ds\r", i)
-		time.Sleep(time.Second)
-	}*/
-
-	fmt.Println("Timer finished!")
-}
-
 func (a *App) Play() (string, error) {
 	state, err := a.Client.Status()
 	turn := make(chan string)
@@ -139,7 +124,7 @@ func enterCords() (string, error) {
 	shot := ""
 	fmt.Println()
 	for !isValidWarshipCoord(shot) {
-		fmt.Print("Enter shot: ")
+		fmt.Print("\nEnter shot: ")
 		reader := bufio.NewReader(os.Stdin)
 		text, err := reader.ReadString('\n')
 		if err != nil {
