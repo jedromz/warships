@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"warships/warships/dto"
 )
 
 type HttpClient struct {
 	token string
 }
 
-func (c *HttpClient) GetDescription() (Description, error) {
+func (c *HttpClient) GetDescription() (dto.Description, error) {
 	url := "https://go-pjatk-server.fly.dev/api/game/desc"
 	method := "GET"
 
@@ -21,7 +22,7 @@ func (c *HttpClient) GetDescription() (Description, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		fmt.Println(err)
-		return Description{}, err
+		return dto.Description{}, err
 	}
 
 	req.Header.Add("accept", "application/json")
@@ -30,32 +31,32 @@ func (c *HttpClient) GetDescription() (Description, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return Description{}, err
+		return dto.Description{}, err
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return Description{}, err
+		return dto.Description{}, err
 	}
 
-	var desc Description
+	var desc dto.Description
 	err = json.Unmarshal(body, &desc)
 	if err != nil {
-		return Description{}, err
+		return dto.Description{}, err
 	}
 	return desc, nil
 }
 
-func (c *HttpClient) GetBoard() (GameBoard, error) {
+func (c *HttpClient) GetBoard() (dto.GameBoard, error) {
 	url := "https://go-pjatk-server.fly.dev/api/game/board"
 
 	// Create the HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return GameBoard{}, err
+		return dto.GameBoard{}, err
 	}
 
 	// Set the request headers
@@ -67,16 +68,16 @@ func (c *HttpClient) GetBoard() (GameBoard, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return GameBoard{}, err
+		return dto.GameBoard{}, err
 	}
 	defer resp.Body.Close()
 
 	// Read the response body
-	var response GameBoard
+	var response dto.GameBoard
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return GameBoard{}, err
+		return dto.GameBoard{}, err
 	}
 
 	// Extract the board array
@@ -176,14 +177,14 @@ func (c *HttpClient) Fire(coord string) (string, error) {
 	return result, nil
 }
 
-func (c *HttpClient) GetStatus() (*GameStatusResponse, error) {
+func (c *HttpClient) GetStatus() (dto.GameStatus, error) {
 	url := "https://go-pjatk-server.fly.dev/api/game"
 
 	// Create the HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return nil, err
+		return dto.GameStatus{}, err
 	}
 
 	// Set the request headers
@@ -195,18 +196,19 @@ func (c *HttpClient) GetStatus() (*GameStatusResponse, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return nil, err
+		return dto.GameStatus{}, err
 	}
 	defer resp.Body.Close()
 
 	// Read the response body
-	var gameStatusResp GameStatusResponse
+	var gameStatusResp dto.GameStatus
 	err = json.NewDecoder(resp.Body).Decode(&gameStatusResp)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return nil, err
+		return dto.GameStatus{}, err
 	}
+	fmt.Println("Game status:", gameStatusResp)
 
 	// Return the game status response
-	return &gameStatusResp, nil
+	return gameStatusResp, nil
 }
