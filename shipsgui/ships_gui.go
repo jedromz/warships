@@ -1,15 +1,16 @@
-package ships_gui
+package shipsgui
 
 import (
+	"context"
 	gui "github.com/grupawp/warships-gui/v2"
 	"warships/service"
 )
 
 type GUI struct {
 	Service       service.GameService
-	GUI           gui.GUI
-	PlayerBoard   gui.Board
-	OpponentBoard gui.Board
+	GUI           *gui.GUI
+	PlayerBoard   *gui.Board
+	OpponentBoard *gui.Board
 }
 
 func (g *GUI) Display() {
@@ -30,5 +31,15 @@ func (g *GUI) Display() {
 	board1.SetStates(states)
 	board2.SetStates(states)
 
-	ui.Start(nil)
+	go g.listenOpponentBoard()
+	ui.Start(context.TODO())
+}
+
+func (g *GUI) listenOpponentBoard() {
+	go func() {
+		for {
+			char := g.OpponentBoard.Listen(context.TODO())
+			g.GUI.Log("Coordinate: %s", char) // logs are displayed after the game exits
+		}
+	}()
 }

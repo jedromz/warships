@@ -1,7 +1,19 @@
-package warships
-
-import gui "github.com/grupawp/warships-gui/v2"
+package domain
 
 type Board struct {
-	States [10][10]gui.State
+	Marks  []Mark
+	Player Player
+}
+
+type Mark struct {
+	X, Y  int
+	State string
+}
+
+func (b *Board) Mark(mark Mark) {
+	b.Marks = append(b.Marks, mark)
+}
+
+func (b *Board) InitialSetup(marks []Mark) {
+	b.Marks = marks
 }
