@@ -1,5 +1,17 @@
 package http
 
+import "warships/warships/http"
+
+type Client interface {
+	StartGame() error
+	StartPvpGame(nick, desc, targetNick string) error
+	GetBoard() (GameBoard, error)
+	GetDescription() (http.Description, error)
+	GetStatus() (*http.GameStatusResponse, error)
+	Fire(coord string) (string, error)
+	GetLobby() ([]http.LobbyEntry, error)
+}
+
 type GameStatusResponse struct {
 	GameStatus     string   `json:"game_status"`
 	LastGameStatus string   `json:"last_game_status"`

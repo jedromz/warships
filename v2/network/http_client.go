@@ -161,6 +161,7 @@ func (c *HttpClient) StartGame() error {
 	defer resp.Body.Close()
 
 	authToken := resp.Header.Get("x-auth-token")
+	fmt.Println("Auth token:", authToken)
 
 	// Print the auth token
 	c.token = authToken

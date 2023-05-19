@@ -7,6 +7,14 @@ import (
 	"warships/warships/boards"
 )
 
+func (a *App) GetListOfPlayers() {
+	lobby, err := a.GetLobby()
+	if err != nil {
+		return
+	}
+	fmt.Println(lobby)
+}
+
 func (a *App) GameDescription() {
 	dsc, err := a.GetDescription()
 	fmt.Println(dsc)
@@ -56,7 +64,6 @@ func (a *App) GameLoop() {
 				Coords: sh.Coords,
 				Result: fire,
 			}
-
 		} else {
 			txt2 := gui.NewText(1, 1, "Enemy turn", nil)
 			a.Boards.GUI.Draw(txt2)

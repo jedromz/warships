@@ -15,11 +15,11 @@ func (b *Boards) DisplayPlayers() {
 		FgColor: gui.White,
 		BgColor: gui.Red,
 	}
-	playerName := gui.NewText(1, 26, b.GameDescription.Nick, &playerCnfg)
-	playerDesc := gui.NewText(1, 27, b.GameDescription.Desc, &playerCnfg)
+	playerName := gui.NewText(1, 27, b.GameDescription.Nick, &playerCnfg)
+	playerDesc := gui.NewText(1, 28, b.GameDescription.Desc, &playerCnfg)
 
-	opponentName := gui.NewText(50, 26, b.GameDescription.Opponent, &oppCnfg)
-	opponentDesc := gui.NewText(50, 27, b.GameDescription.OppDesc, &oppCnfg)
+	opponentName := gui.NewText(50, 27, b.GameDescription.Opponent, &oppCnfg)
+	opponentDesc := gui.NewText(50, 28, b.GameDescription.OppDesc, &oppCnfg)
 
 	b.GUI.Draw(playerName)
 	b.GUI.Draw(playerDesc)
