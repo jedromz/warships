@@ -1,6 +1,8 @@
-package display
+package boards
 
-import gui "github.com/grupawp/warships-gui/v2"
+import (
+	gui "github.com/grupawp/warships-gui/v2"
+)
 
 func (f *Fields) DrawBoarder(x, y int) [][]int {
 	vec := [][]int{

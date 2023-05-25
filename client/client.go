@@ -1,6 +1,7 @@
-package display
+package client
 
 import (
+	globals "battleships/globals"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -15,7 +16,7 @@ type HttpClient struct {
 func NewHttpClient() *HttpClient {
 	return &HttpClient{}
 }
-func (c *HttpClient) GetDescription() (Description, error) {
+func (c *HttpClient) GetDescription() (globals.Description, error) {
 	url := "https://go-pjatk-server.fly.dev/api/game/desc"
 	method := "GET"
 
@@ -24,7 +25,7 @@ func (c *HttpClient) GetDescription() (Description, error) {
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		fmt.Println(err)
-		return Description{}, err
+		return globals.Description{}, err
 	}
 
 	req.Header.Add("accept", "application/json")
@@ -33,32 +34,32 @@ func (c *HttpClient) GetDescription() (Description, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return Description{}, err
+		return globals.Description{}, err
 	}
 	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return Description{}, err
+		return globals.Description{}, err
 	}
 
-	var desc Description
+	var desc globals.Description
 	err = json.Unmarshal(body, &desc)
 	if err != nil {
-		return Description{}, err
+		return globals.Description{}, err
 	}
 	return desc, nil
 }
 
-func (c *HttpClient) GetBoard() (GameBoard, error) {
+func (c *HttpClient) GetBoard() (globals.GameBoard, error) {
 	url := "https://go-pjatk-server.fly.dev/api/game/board"
 
 	// Create the HTTP request
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return GameBoard{}, err
+		return globals.GameBoard{}, err
 	}
 
 	// Set the request headers
@@ -70,16 +71,16 @@ func (c *HttpClient) GetBoard() (GameBoard, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return GameBoard{}, err
+		return globals.GameBoard{}, err
 	}
 	defer resp.Body.Close()
 
 	// Read the response body
-	var response GameBoard
+	var response globals.GameBoard
 	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return GameBoard{}, err
+		return globals.GameBoard{}, err
 	}
 
 	// Extract the board array
@@ -219,7 +220,7 @@ func (c *HttpClient) Fire(coord string) (string, error) {
 	return result, nil
 }
 
-func (c *HttpClient) GetStatus() (*GameStatusResponse, error) {
+func (c *HttpClient) GetStatus() (*globals.GameStatusResponse, error) {
 	url := "https://go-pjatk-server.fly.dev/api/game"
 
 	// Create the HTTP request
@@ -243,7 +244,7 @@ func (c *HttpClient) GetStatus() (*GameStatusResponse, error) {
 	defer resp.Body.Close()
 
 	// Read the response body
-	var gameStatusResp GameStatusResponse
+	var gameStatusResp globals.GameStatusResponse
 	err = json.NewDecoder(resp.Body).Decode(&gameStatusResp)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -253,7 +254,7 @@ func (c *HttpClient) GetStatus() (*GameStatusResponse, error) {
 	// Return the game status response
 	return &gameStatusResp, nil
 }
-func (c *HttpClient) GetLobby() ([]LobbyEntry, error) {
+func (c *HttpClient) GetLobby() ([]globals.LobbyEntry, error) {
 	url := "https://go-pjatk-server.fly.dev/api/lobby"
 
 	// Create the HTTP request
@@ -276,7 +277,7 @@ func (c *HttpClient) GetLobby() ([]LobbyEntry, error) {
 	defer resp.Body.Close()
 
 	// Read the response body
-	var lobby []LobbyEntry
+	var lobby []globals.LobbyEntry
 	err = json.NewDecoder(resp.Body).Decode(&lobby)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -288,5 +289,24 @@ func (c *HttpClient) GetLobby() ([]LobbyEntry, error) {
 }
 
 func (c *HttpClient) AbortGame() {
-	
+	url := "https://go-pjatk-server.fly.dev/api/game/abort"
+
+	// Create the HTTP request
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Set the request headers
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request
+	client := &http.Client{}
+	_, err = client.Do(req)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	return
 }

@@ -1,4 +1,4 @@
-package display
+package boards
 
 import (
 	gui "github.com/grupawp/warships-gui/v2"
@@ -6,8 +6,8 @@ import (
 
 type Fields struct {
 	States     *[10][10]gui.State
-	totalShots int
-	totalHits  int
+	TotalShots int
+	TotalHits  int
 }
 
 func NewFields() *Fields {
@@ -17,10 +17,10 @@ func NewFields() *Fields {
 }
 
 func (f *Fields) GetAccuracy() float64 {
-	if f.totalShots == 0 {
+	if f.TotalShots == 0 {
 		return 0
 	}
-	return float64(f.totalHits) / float64(f.totalShots)
+	return float64(f.TotalHits) / float64(f.TotalShots)
 }
 
 func (f *Fields) SetStates(s [10][10]gui.State) {

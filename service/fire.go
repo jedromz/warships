@@ -1,4 +1,4 @@
-package display
+package service
 
 import (
 	gui "github.com/grupawp/warships-gui/v2"
@@ -12,15 +12,15 @@ func (s *GameService) Fire(coords string) error {
 	x, y := mapToState(coords)
 	switch res {
 	case "hit":
-		s.o.totalHits++
+		s.o.TotalHits++
 		s.o.Mark(x, y, gui.Hit)
 	case "miss":
 		s.o.Mark(x, y, gui.Miss)
 	case "sunk":
-		s.o.totalHits++
+		s.o.TotalHits++
 		s.o.Mark(x, y, gui.Hit)
 		s.o.DrawBoarder(x, y)
 	}
-	s.o.totalShots++
+	s.o.TotalShots++
 	return nil
 }

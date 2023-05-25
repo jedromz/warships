@@ -1,18 +1,12 @@
 package display
 
 import (
+	globals "battleships/globals"
+	"battleships/service"
 	"context"
 	"fmt"
 	gui "github.com/grupawp/warships-gui/v2"
 	"time"
-)
-
-const (
-	playerRows      = 1
-	playerColumns   = 4
-	opponentRows    = 50
-	opponentColumns = 4
-	defaultTimer    = 60
 )
 
 const (
@@ -30,9 +24,9 @@ type Game struct {
 	gui           *gui.GUI
 	playerBoard   *gui.Board
 	opponentBoard *gui.Board
-	s             *GameService
-	dsc           Description
-	gameChan      chan GameEvent
+	s             *service.GameService
+	dsc           globals.Description
+	gameChan      chan globals.GameEvent
 	resetTimer    chan bool
 	timer         int
 }
@@ -42,8 +36,8 @@ func NewApp() *Game {
 		gui:           gui.NewGUI(true),
 		playerBoard:   gui.NewBoard(1, 4, nil),
 		opponentBoard: gui.NewBoard(50, 4, nil),
-		s:             NewGameService(),
-		gameChan:      make(chan GameEvent),
+		s:             service.NewGameService(),
+		gameChan:      make(chan globals.GameEvent),
 		resetTimer:    make(chan bool),
 		timer:         60,
 	}
@@ -102,17 +96,17 @@ func (a *Game) StartBotGame() {
 }
 
 func (a *Game) gameLoop() {
-	var sts GameStatusResponse
+	var sts globals.GameStatusResponse
 	var err error
 	for sts, err = a.s.UpdateGameStatus(); sts.GameStatus != ended && err == nil; sts, err = a.s.UpdateGameStatus() {
 		a.gui.Draw(gui.NewText(1, 1, "Enemy turn!", nil))
-		a.gameChan <- GameEvent{
+		a.gameChan <- globals.GameEvent{
 			Type: "opponent_turn",
 			Data: sts.OppShots,
 		}
 		if sts.ShouldFire {
 			a.gui.Draw(gui.NewText(1, 1, "Your turn!", nil))
-			a.gameChan <- GameEvent{
+			a.gameChan <- globals.GameEvent{
 				Type: "player_turn",
 				Data: "Your turn",
 			}
@@ -170,7 +164,6 @@ func (g *Game) SetState(state gui.State, coord string, states *[10][10]gui.State
 func (a *Game) display() {
 	a.gui.Draw(a.playerBoard)
 	a.gui.Draw(a.opponentBoard)
-	a.gui.Draw(newFlag())
 	a.drawDescription()
 
 	go func() {
@@ -184,7 +177,7 @@ func (a *Game) display() {
 					return
 				}
 				a.opponentBoard.SetStates(*a.s.GetOpponentFields())
-				a.gameChan <- GameEvent{
+				a.gameChan <- globals.GameEvent{
 					Type: opponentTurn,
 				}
 

@@ -1,4 +1,4 @@
-package display
+package service
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 func (s *GameService) PlaceShip(coords []string) error {
 	fmt.Println(coords)
-	if !checkPattern(coords) {
+	if !CheckPattern(coords) {
 		fmt.Println("invalid pattern")
 		return fmt.Errorf("invalid pattern")
 	}
@@ -15,7 +15,7 @@ func (s *GameService) PlaceShip(coords []string) error {
 	return nil
 }
 
-func checkPattern(coords []string) bool {
+func CheckPattern(coords []string) bool {
 	if len(coords) == 0 || len(coords) > 4 {
 		return false
 	}
@@ -72,7 +72,7 @@ var directions = [][]int{
 	{1, 1},   // Down-right
 }
 
-func isShipPlacementValid(matrix [10][10]gui.State) bool {
+func IsShipPlacementValid(matrix [10][10]gui.State) bool {
 	for i := 0; i < 10; i++ {
 		for j := 0; j < 10; j++ {
 			if matrix[i][j] == gui.Ship {

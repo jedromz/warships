@@ -1,6 +1,7 @@
-package display
+package boards
 
 import (
+	"battleships/service"
 	gui "github.com/grupawp/warships-gui/v2"
 	"testing"
 )
@@ -17,7 +18,7 @@ func TestCheckPattern(t *testing.T) {
 	}
 
 	for _, testCase := range validPatterns {
-		result := checkPattern(testCase.coords)
+		result := service.CheckPattern(testCase.coords)
 		if result != testCase.result {
 			t.Errorf("Expected %v, but got %v for coordinates %v", testCase.result, result, testCase.coords)
 		}
@@ -34,7 +35,7 @@ func TestCheckPattern(t *testing.T) {
 	}
 
 	for _, testCase := range invalidPatterns {
-		result := checkPattern(testCase.coords)
+		result := service.CheckPattern(testCase.coords)
 		if result {
 			t.Errorf("Expected false, but got true for coordinates %v", testCase.coords)
 		}
@@ -60,7 +61,7 @@ func TestIsShipPlacementValid_ValidPlacement(t *testing.T) {
 	matrix[0][1] = gui.Ship
 	matrix[0][2] = gui.Ship
 
-	if !isShipPlacementValid(matrix) {
+	if !service.IsShipPlacementValid(matrix) {
 		t.Error("Expected ship placement to be valid")
 	}
 }

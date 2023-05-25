@@ -1,4 +1,4 @@
-package display
+package service
 
 type GameStatusResponse struct {
 	GameStatus     string   `json:"game_status"`
