@@ -22,6 +22,10 @@ func NewGameService() *GameService {
 	}
 }
 
+func (s *GameService) GetStats() (globals.GameStats, error) {
+	return s.c.GetGameStats()
+}
+
 func (s *GameService) GetPlayerAccuracy() float64 {
 	return s.o.GetAccuracy()
 }
@@ -103,4 +107,16 @@ func (s *GameService) UpdatePlayerBoard(coords []string) {
 
 func (s *GameService) AbortGame() {
 	s.c.AbortGame()
+}
+
+func (s *GameService) CheckSurroundings(coords []string) bool {
+
+	for _, v := range coords {
+		x, y := mapToState(v)
+		if s.p.HasShipAround(x, y) {
+			return false
+		}
+	}
+
+	return true
 }

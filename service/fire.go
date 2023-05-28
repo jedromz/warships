@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	gui "github.com/grupawp/warships-gui/v2"
 )
 
@@ -10,6 +11,9 @@ func (s *GameService) Fire(coords string) error {
 		return err
 	}
 	x, y := mapToState(coords)
+	if s.o.States[x][y] != "" {
+		return fmt.Errorf("already fired at %s", coords)
+	}
 	switch res {
 	case "hit":
 		s.o.TotalHits++

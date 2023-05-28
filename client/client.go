@@ -310,3 +310,39 @@ func (c *HttpClient) AbortGame() {
 	}
 	return
 }
+
+func (c *HttpClient) GetGameStats() (globals.GameStats, error) {
+	url := "https://go-pjatk-server.fly.dev/api/stats"
+
+	// Create the HTTP request
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+
+	// Set the request headers
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	var response struct {
+		Stats []globals.GameStat `json:"stats"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&response)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return nil, err
+	}
+
+	// Return the game stats
+	return response.Stats, nil
+}

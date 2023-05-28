@@ -43,3 +43,14 @@ func isShip(x, y int, f *Fields) bool {
 	}
 	return f.States[x][y] == gui.Ship || f.States[x][y] == gui.Hit
 }
+func (f *Fields) HasShipAround(x, y int) bool {
+	// Check all directions for ships
+	return isShip(x-1, y, f) || // Left
+		isShip(x+1, y, f) || // Right
+		isShip(x, y-1, f) || // Up
+		isShip(x, y+1, f) || // Down
+		isShip(x-1, y-1, f) || // Top Left
+		isShip(x-1, y+1, f) || // Bottom Left
+		isShip(x+1, y-1, f) || // Top Right
+		isShip(x+1, y+1, f) // Bottom Right
+}

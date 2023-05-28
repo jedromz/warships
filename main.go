@@ -1,9 +1,9 @@
 package main
 
-import "battleships/display"
+import "battleships/game"
 
 func main() {
-	app := display.NewApp()
+	app := game.NewApp()
 
 	app.Menu()
 

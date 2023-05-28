@@ -36,3 +36,27 @@ type Player struct {
 	GameStatus string `json:"game_status"`
 	Nick       string `json:"nick"`
 }
+type GameStat struct {
+	Games  int    `json:"games"`
+	Nick   string `json:"nick"`
+	Points int    `json:"points"`
+	Rank   int    `json:"rank"`
+	Wins   int    `json:"wins"`
+}
+
+type GameStats []GameStat
+
+func (g GameStats) Len() int {
+	return len(g)
+}
+
+func (g GameStats) Less(i, j int) bool {
+	if g[i].Wins != g[j].Wins {
+		return g[i].Wins > g[j].Wins
+	}
+	return g[i].Nick < g[j].Nick
+}
+
+func (g GameStats) Swap(i, j int) {
+	g[i], g[j] = g[j], g[i]
+}
