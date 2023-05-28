@@ -90,11 +90,11 @@ func (c *HttpClient) GetBoard() (globals.GameBoard, error) {
 	fmt.Println("Board:", board)
 	return board, nil
 }
-func (c *HttpClient) StartPvpGame(nick, desc, targetNick string) error {
+func (c *HttpClient) StartPvpGame(nick, desc, targetNick string, ships []string) error {
 	url := "https://go-pjatk-server.fly.dev/api/game"
 
 	body := map[string]interface{}{
-		"coords":      []string{},
+		"coords":      ships,
 		"desc":        desc,
 		"nick":        nick,
 		"target_nick": targetNick,

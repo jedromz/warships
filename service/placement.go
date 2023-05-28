@@ -50,30 +50,6 @@ func CheckPattern(coords []string) bool {
 	return true
 }
 
-func isValidPlacement(coords []string, index, x, y int) bool {
-	if index >= len(coords) {
-		return true
-	}
-
-	xi, yi := mapToState(coords[index])
-	dx := xi - x
-	dy := yi - y
-
-	if isValidLShape(dx, dy) && isValidPosition(xi, yi) {
-		// Recursively check the remaining coordinates
-		return isValidPlacement(coords, index+1, xi, yi)
-	}
-
-	return false
-}
-
-func isValidLShape(dx, dy int) bool {
-	return (dx == 1 && dy == 0) ||
-		(dx == 0 && dy == 1) ||
-		(dx == -1 && dy == 0) ||
-		(dx == 0 && dy == -1)
-}
-
 var directions = [][]int{
 	{0, -1},  // Up
 	{0, 1},   // Down

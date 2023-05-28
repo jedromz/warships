@@ -90,8 +90,8 @@ func (s *GameService) ListPlayers() ([]globals.LobbyEntry, error) {
 	return s.c.GetLobby()
 }
 
-func (s *GameService) StartPvpGame(nick, desc, targetNick string) {
-	s.c.StartPvpGame(nick, desc, targetNick)
+func (s *GameService) StartPvpGame(nick, desc, targetNick string, ships []string) {
+	s.c.StartPvpGame(nick, desc, targetNick, ships)
 }
 
 func (s *GameService) UpdatePlayerStates(states [10][10]gui.State) {

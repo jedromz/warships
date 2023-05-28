@@ -149,27 +149,21 @@ func (g *Game) placeShips() []string {
 	g.gui.Draw(g.playerBoard)
 	c := make(chan []string)
 	var shipPlacement []string
+
 	go func() {
 		states := [10][10]gui.State{}
+
 		for shipLength, shipCount := range Ships {
 			for i := 0; i < shipCount; i++ {
 				var coords []string
 				wellPlaced := false
+
 				for !wellPlaced {
-					for j := 0; j < shipLength; j++ {
-						for {
-							coord := g.playerBoard.Listen(context.Background())
-							if !containsCoordinate(coord, coords) {
-								coords = g.SetState(gui.Ship, coord, &states, coords)
-								break
-							}
-						}
-					}
+					coords = g.getValidShipPlacement(shipLength, &states)
 					err := g.s.PlaceShip(coords)
+
 					if err != nil {
-						for _, crd := range coords {
-							coords = g.SetState(gui.Empty, crd, &states, coords)
-						}
+						g.undoShipPlacement(coords, &states)
 						coords = []string{}
 					} else {
 						shipPlacement = append(shipPlacement, coords...)
@@ -180,11 +174,35 @@ func (g *Game) placeShips() []string {
 				}
 			}
 		}
+
 		g.s.UpdatePlayerStates(states)
 		c <- shipPlacement
 	}()
+
 	g.gui.Start(context.Background(), nil)
 	return <-c
+}
+
+func (g *Game) getValidShipPlacement(shipLength int, states *[10][10]gui.State) []string {
+	var coords []string
+
+	for i := 0; i < shipLength; i++ {
+		for {
+			coord := g.playerBoard.Listen(context.Background())
+			if !containsCoordinate(coord, coords) {
+				coords = g.SetState(gui.Ship, coord, states, coords)
+				break
+			}
+		}
+	}
+
+	return coords
+}
+
+func (g *Game) undoShipPlacement(coords []string, states *[10][10]gui.State) {
+	for _, crd := range coords {
+		coords = g.SetState(gui.Empty, crd, states, coords)
+	}
 }
 
 func (g *Game) SetState(state gui.State, coord string, states *[10][10]gui.State, coords []string) []string {
@@ -288,8 +306,11 @@ func (g *Game) listPlayers() {
 		fmt.Println(err)
 		return
 	}
+
 	for _, player := range players {
-		fmt.Println(player)
+		fmt.Printf("Game Status: %s\n", player.GameStatus)
+		fmt.Printf("Nickname: %s\n", player.Nick)
+		fmt.Println()
 	}
 }
 
@@ -305,12 +326,20 @@ func (g *Game) StartPvpGame() {
 	fmt.Scanln(&targetNick)
 
 	for {
-		g.s.StartPvpGame(nick, desc, targetNick)
+		answer := askShipPlacement()
+
+		var ships []string
+		if answer == "y" {
+			ships = g.placeShips()
+		}
+
+		g.s.StartPvpGame(nick, desc, targetNick, ships)
 
 		_, err := g.s.LoadPlayerBoard()
 		if err != nil {
 			break
 		}
+
 		go showSpinner(g.gameActive)
 		err = g.s.WaitForGame()
 		g.gameActive <- true
@@ -319,11 +348,13 @@ func (g *Game) StartPvpGame() {
 		if err != nil {
 			break
 		}
+
 		go g.gameLoop()
 		go g.startTimer()
 		g.display()
-		fmt.Println("Would you like to play again?(y/n)")
-		var answer string
+
+		fmt.Println("Would you like to play again? (y/n)")
+
 		_, err = fmt.Scanln(&answer)
 		if err != nil {
 			break
