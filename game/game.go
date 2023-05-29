@@ -59,21 +59,21 @@ func NewApp() *Game {
 
 func (g *Game) StartBotGame() {
 	for {
+		var err error
 		answer := askShipPlacement()
 
 		var ships []string
 		if answer == "y" {
 			ships = g.placeShips()
 		}
-
-		err := g.s.StartBotGame(ships)
+		if answer == "n" {
+			_, err = g.s.LoadPlayerBoard()
+		}
+		err = g.s.StartBotGame(ships)
 		if err != nil {
 			g.gui.Log(err.Error())
 		}
 
-		if answer == "n" {
-			_, err = g.s.LoadPlayerBoard()
-		}
 		if err != nil {
 			return
 		}
